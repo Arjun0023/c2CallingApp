@@ -1,0 +1,327 @@
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  PermissionsAndroid,
+  Alert,
+  Button,
+  ActivityIndicator,
+  TouchableOpacity,
+  Animated
+} from 'react-native';
+import CallLogs from 'react-native-call-log';
+import Icon from 'react-native-vector-icons/Ionicons';
+import RNFS from 'react-native-fs';
+
+const Recents = () => {
+  const [callLogs, setCallLogs] = useState([]);
+  const [loading, setLoading] = useState({});
+  const [transcriptionResponses, setTranscriptionResponses] = useState({});
+  const [scrollY] = useState(new Animated.Value(0));
+
+  useEffect(() => {
+    requestPermissionsAndFetchLogs();
+  }, []);
+
+  const requestPermissionsAndFetchLogs = async () => {
+    try {
+      const permissions = await Promise.all([
+        PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_CALL_LOG
+        ),
+        PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE
+        ),
+      ]);
+
+      if (permissions.every(permission => permission === PermissionsAndroid.RESULTS.GRANTED)) {
+        const logs = await CallLogs.loadAll();
+        setCallLogs(logs);
+      } else {
+        Alert.alert('Permission Denied', 'Both call log and storage permissions are required.');
+      }
+    } catch (error) {
+      console.error('Error fetching call logs:', error);
+      Alert.alert('Error', 'Unable to fetch call logs.');
+    }
+  };
+
+  const formatDateForRecording = (date) => {
+    return date.getFullYear() +
+           ('0' + (date.getMonth() + 1)).slice(-2) +
+           ('0' + date.getDate()).slice(-2) +
+           ('0' + date.getHours()).slice(-2) +
+           ('0' + date.getMinutes()).slice(-2) +
+           ('0' + date.getSeconds()).slice(-2);
+  };
+
+  const findRecordingFile = async (phoneNumber, timestamp, duration) => {
+    try {
+      const recordingsPath = `${RNFS.ExternalStorageDirectoryPath}/MIUI/sound_recorder/call_rec`;
+      
+      if (!(await RNFS.exists(recordingsPath))) {
+        throw new Error('Recordings directory not found');
+      }
+
+      const files = await RNFS.readDir(recordingsPath);
+      
+      // Calculate the call start time
+      const callEndTime = new Date(timestamp);
+      const callStartTime = new Date(timestamp - (duration * 1000)); // duration is in seconds
+      
+      // Format the timestamp for comparison
+      const startTimeStr = formatDateForRecording(callStartTime);
+      
+      // Clean phone number (remove special characters)
+      const cleanNumber = phoneNumber.replace(/\D/g, '');
+
+      // Look for a file that matches the pattern: Call@contactname(phonenumber)_timestamp.mp3
+      const recording = files.find(file => {
+        const fileName = file.name;
+        
+        // Check if file contains the phone number
+        if (!fileName.includes(cleanNumber)) {
+          return false;
+        }
+
+        // Extract timestamp from filename (last 14 digits before .mp3)
+        const fileTimestamp = fileName.match(/_(\d{14})\.mp3$/);
+        if (!fileTimestamp) {
+          return false;
+        }
+
+        // Compare the timestamp
+        // The file timestamp should be close to the call start time
+        // Allow for a few seconds of difference
+        const timeDiff = Math.abs(parseInt(fileTimestamp[1]) - parseInt(startTimeStr));
+        return timeDiff < 100; // Allow for a small time difference
+      });
+
+      return recording;
+    } catch (error) {
+      console.error('Error finding recording:', error);
+      return null;
+    }
+  };
+
+  const transcribeRecording = async (phoneNumber, timestamp, duration, logId) => {
+    try {
+      setLoading(prev => ({ ...prev, [logId]: true }));
+
+      const recording = await findRecordingFile(phoneNumber, timestamp, duration);
+      if (!recording) {
+        Alert.alert('File Not Found', 'No recording found for this call.');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', {
+        uri: `file://${recording.path}`,
+        type: 'audio/mpeg',
+        name: recording.name,
+      });
+
+      const response = await fetch('https://9ff0-122-170-233-218.ngrok-free.app/transcribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      setCallLogs(prev => 
+        prev.map(log => 
+          log.timestamp === timestamp 
+            ? { ...log, transcription: result.text}
+            : log
+        )
+      );
+
+    } catch (error) {
+      console.error('Transcription error:', error);
+      Alert.alert('Error', 'Failed to transcribe the recording. Please try again.');
+    } finally {
+      setLoading(prev => ({ ...prev, [logId]: false }));
+    }
+  };
+
+  const formatDuration = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const headerHeight = scrollY.interpolate({
+    inputRange: [0, 60],
+    outputRange: [60, 0],
+    extrapolate: 'clamp'
+  });
+
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [0, 60],
+    outputRange: [1, 0],
+    extrapolate: 'clamp'
+  });
+
+  const formatDate = (timestamp) => {
+    const date = new Date(Number(timestamp));
+    if (isNaN(date.getTime())) return 'Invalid Date';
+
+    const now = new Date();
+    const diff = now - date;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+    if (days === 0) {
+      return date.toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true 
+      });
+    } else if (days === 1) {
+      return 'Yesterday';
+    } else if (days < 7) {
+      return date.toLocaleDateString('en-US', { weekday: 'long' });
+    } else {
+      return date.toLocaleDateString('en-US', { 
+        month: 'short',
+        day: 'numeric'
+      });
+    }
+  };
+
+  const renderItem = ({ item }) => (
+    <View style={styles.callLogItem}>
+      <View style={styles.callInfo}>
+        <View style={styles.callDetails}>
+          <Text style={styles.nameText}>{item.name || 'Unknown'}</Text>
+          <Text style={styles.phoneNumberText}>{item.phoneNumber}</Text>
+          <Text style={styles.dateText}>{formatDate(item.timestamp)}</Text>
+          <Text style={styles.durationText}>Duration: {item.duration}s</Text>
+          {item.transcription && (
+            <Text style={styles.transcriptionText}>{item.transcription}</Text>
+          )}
+        </View>
+        <TouchableOpacity
+          style={styles.micButton}
+          onPress={() =>
+            transcribeRecording(item.phoneNumber, item.timestamp, item.duration, item.timestamp)
+          }
+        >
+          {loading[item.timestamp] ? (
+            <ActivityIndicator color="#FFF" />
+          ) : (
+            <Icon name="mic" size={20} color="#FFF" />
+          )}
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  return (
+    <View style={styles.container}>
+      <Animated.View style={[styles.headerContainer, { height: headerHeight, opacity: headerOpacity }]}>
+        <Text style={styles.header}>Recent Calls</Text>
+      </Animated.View>
+      <FlatList
+        data={callLogs}
+        keyExtractor={item => item.timestamp.toString()}
+        renderItem={renderItem}
+        contentContainerStyle={styles.listContainer}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
+        )}
+        scrollEventThrottle={16}
+      />
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Platform.OS === 'ios' ? '#F2F2F7' : '#F0F0F5',
+  },
+  headerContainer: {
+    backgroundColor: Platform.OS === 'ios' ? '#F2F2F7' : '#007AFF',
+    justifyContent: 'flex-end',
+    paddingBottom: 10,
+  },
+  header: {
+    fontSize: 34,
+    fontWeight: '700',
+    padding: 20,
+    color: Platform.OS === 'ios' ? '#000' : '#FFF',
+    paddingLeft: 20,
+    fontFamily: Platform.OS === 'ios' ? '-apple-system' : undefined,
+  },
+  listContainer: {
+    padding: 10,
+  },
+  callLogItem: {
+    backgroundColor: '#FFF',
+    padding: 15,
+    marginBottom: 10,
+    borderRadius: Platform.OS === 'ios' ? 12 : 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  callInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  callDetails: {
+    flex: 1,
+    marginRight: 15,
+  },
+  nameText: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#000',
+    fontFamily: Platform.OS === 'ios' ? '-apple-system' : undefined,
+    marginBottom: 2,
+  },
+  phoneNumberText: {
+    fontSize: 15,
+    color: '#666',
+    marginBottom: 2,
+  },
+  dateText: {
+    fontSize: 13,
+    color: '#8E8E93',
+    marginBottom: 2,
+  },
+  durationText: {
+    fontSize: 13,
+    color: '#8E8E93',
+  },
+  transcriptionText: {
+    marginTop: 8,
+    fontSize: 15,
+    color: '#666',
+    lineHeight: 20,
+  },
+  micButton: {
+    backgroundColor: Platform.OS === 'ios' ? '#007AFF' : '#007AFF',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+  },
+});
+
+export default Recents;
