@@ -8,10 +8,10 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons'; // Import Ionicons for iOS-style icons
-import PhoneScreen from './PhoneScreen';
-import ContactList from './ContactList';
-import ContactDetails from './ContactDetails';
-import Recents from './Recents';
+import PhoneScreen from './src/PhoneScreen';
+import ContactList from './src/ContactList';
+import ContactDetails from './src/ContactDetails';
+import Recents from './src/Recents';
 
 const App = () => {
   const [activeTab, setActiveTab] = useState('Phone');

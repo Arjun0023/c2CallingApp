@@ -15,6 +15,8 @@ import CallLogs from 'react-native-call-log';
 import Icon from 'react-native-vector-icons/Ionicons';
 import RNFS from 'react-native-fs';
 
+
+const HEADER_HEIGHT = 10;
 const Recents = () => {
   const [callLogs, setCallLogs] = useState([]);
   const [loading, setLoading] = useState({});
@@ -123,7 +125,7 @@ const Recents = () => {
         name: recording.name,
       });
 
-      const response = await fetch('https://9ff0-122-170-233-218.ngrok-free.app/transcribe', {
+      const response = await fetch('https://e8f9-122-170-233-218.ngrok-free.app/transcribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -159,17 +161,12 @@ const Recents = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const headerHeight = scrollY.interpolate({
-    inputRange: [0, 60],
-    outputRange: [60, 0],
+  const headerTranslate = scrollY.interpolate({
+    inputRange: [0, HEADER_HEIGHT],
+    outputRange: [0, -HEADER_HEIGHT],
     extrapolate: 'clamp'
   });
 
-  const headerOpacity = scrollY.interpolate({
-    inputRange: [0, 60],
-    outputRange: [1, 0],
-    extrapolate: 'clamp'
-  });
 
   const formatDate = (timestamp) => {
     const date = new Date(Number(timestamp));
@@ -209,37 +206,49 @@ const Recents = () => {
             <Text style={styles.transcriptionText}>{item.transcription}</Text>
           )}
         </View>
-        <TouchableOpacity
-          style={styles.micButton}
-          onPress={() =>
-            transcribeRecording(item.phoneNumber, item.timestamp, item.duration, item.timestamp)
-          }
-        >
-          {loading[item.timestamp] ? (
-            <ActivityIndicator color="#FFF" />
-          ) : (
-            <Icon name="mic" size={20} color="#FFF" />
-          )}
-        </TouchableOpacity>
+        <View style={styles.transcribeContainer}>
+          <TouchableOpacity
+            style={styles.micButton}
+            onPress={() =>
+              transcribeRecording(item.phoneNumber, item.timestamp, item.duration, item.timestamp)
+            }
+          >
+            {loading[item.timestamp] ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <Icon name="mic" size={20} color="#FFF" />
+            )}
+          </TouchableOpacity>
+          <Text style={styles.transcribeLabel}>Transcribe</Text>
+        </View>
       </View>
     </View>
   );
 
   return (
     <View style={styles.container}>
-      <Animated.View style={[styles.headerContainer, { height: headerHeight, opacity: headerOpacity }]}>
+      <Animated.View 
+        style={[
+          styles.headerContainer, 
+          { transform: [{ translateY: headerTranslate }] }
+        ]}
+      >
         <Text style={styles.header}>Recent Calls</Text>
       </Animated.View>
-      <FlatList
+      <Animated.FlatList
+        contentInsetAdjustmentBehavior="never"
         data={callLogs}
         keyExtractor={item => item.timestamp.toString()}
         renderItem={renderItem}
-        contentContainerStyle={styles.listContainer}
+        contentContainerStyle={[
+          styles.listContainer,
+          { paddingTop: HEADER_HEIGHT }
+        ]}
+        scrollEventThrottle={1}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: false }
+          { useNativeDriver: true }
         )}
-        scrollEventThrottle={16}
       />
     </View>
   );
@@ -253,7 +262,7 @@ const styles = StyleSheet.create({
   headerContainer: {
     backgroundColor: Platform.OS === 'ios' ? '#F2F2F7' : '#007AFF',
     justifyContent: 'flex-end',
-    paddingBottom: 10,
+    paddingBottom: 0,
   },
   header: {
     fontSize: 34,
@@ -321,6 +330,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'center',
+    marginBottom: 4
+  },transcribeLabel: {
+    fontSize: 11,
+    color: '#8E8E93',
+    marginTop: 2,
+    textAlign: 'center',
   },
 });
 
