@@ -14,7 +14,7 @@ import {
 import CallLogs from 'react-native-call-log';
 import Icon from 'react-native-vector-icons/Ionicons';
 import RNFS from 'react-native-fs';
-
+import Overlay from './EmailOverlay';
 
 const HEADER_HEIGHT = 10;
 const Recents = () => {
@@ -22,6 +22,8 @@ const Recents = () => {
   const [loading, setLoading] = useState({});
   const [transcriptionResponses, setTranscriptionResponses] = useState({});
   const [scrollY] = useState(new Animated.Value(0));
+  const [overlayVisible, setOverlayVisible] = useState(false);
+  const [selectedTranscription, setSelectedTranscription] = useState('');
 
   useEffect(() => {
     requestPermissionsAndFetchLogs();
@@ -203,7 +205,18 @@ const Recents = () => {
           <Text style={styles.dateText}>{formatDate(item.timestamp)}</Text>
           <Text style={styles.durationText}>Duration: {item.duration}s</Text>
           {item.transcription && (
-            <Text style={styles.transcriptionText}>{item.transcription}</Text>
+            <>
+            <TouchableOpacity
+                style={styles.aiEmailButton}
+                onPress={() => {
+                  setSelectedTranscription(item.transcription);
+                  setOverlayVisible(true);
+                }}
+              >
+                <Text style={styles.aiEmailButtonText}>AI Email</Text>
+              </TouchableOpacity>
+              <Text style={styles.transcriptionText}>{item.transcription}</Text>
+            </>
           )}
         </View>
         <View style={styles.transcribeContainer}>
@@ -224,9 +237,13 @@ const Recents = () => {
       </View>
     </View>
   );
-
   return (
     <View style={styles.container}>
+                 <Overlay
+        visible={overlayVisible}
+        onClose={() => setOverlayVisible(false)}
+        transcription={selectedTranscription}
+      />
       <Animated.View 
         style={[
           styles.headerContainer, 
@@ -336,6 +353,19 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
     marginTop: 2,
     textAlign: 'center',
+  },
+  aiEmailButton: {
+    marginTop: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#007AFF',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  aiEmailButtonText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
 

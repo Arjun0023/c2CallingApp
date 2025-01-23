@@ -12,6 +12,8 @@ import PhoneScreen from './src/PhoneScreen';
 import ContactList from './src/ContactList';
 import ContactDetails from './src/ContactDetails';
 import Recents from './src/Recents';
+import LeadScreen from './src/LeadScreen';
+import SFContactsScreen from './src/SFContactsScreen';
 
 const App = () => {
   const [activeTab, setActiveTab] = useState('Phone');
@@ -34,6 +36,10 @@ const App = () => {
         return <ContactList onSelectContact={setSelectedContact} />;
       case 'Recents':
         return <Recents />;
+      case 'Lead':
+        return <LeadScreen />;
+      case 'SF_Contacts':
+        return <SFContactsScreen />;
       default:
         return null;
     }
@@ -61,6 +67,18 @@ const App = () => {
           label="Contacts"
           isActive={activeTab === 'Contacts'}
           onPress={() => setActiveTab('Contacts')}
+        />
+        <Tab
+          icon="briefcase-outline"
+          label="Lead"
+          isActive={activeTab === 'Lead'}
+          onPress={() => setActiveTab('Lead')}
+        />
+        <Tab
+          icon="person-outline"
+          label="SF_Contacts"
+          isActive={activeTab === 'SF_Contacts'}
+          onPress={() => setActiveTab('SF_Contacts')}
         />
       </View>
     </SafeAreaView>
@@ -95,19 +113,19 @@ const styles = StyleSheet.create({
   },
   tabsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between', // Ensures proper spacing between tabs
+    justifyContent: 'space-between',
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: '#DDDDDD', // Top border of the container
+    borderTopColor: '#DDDDDD',
   },
   tab: {
     alignItems: 'center',
-    flex: 1, // Ensures tabs take equal space
-    paddingVertical: 12, // Adds some space inside the tabs
+    flex: 1,
+    paddingVertical: 12,
   },
   activeTab: {
-    borderTopWidth: 2, // Adjust border width for active tab
-    borderTopColor: '#007AFF', // Blue color for active tab
+    borderTopWidth: 2,
+    borderTopColor: '#007AFF',
   },
   tabText: {
     fontSize: 12,
