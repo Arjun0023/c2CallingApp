@@ -12,12 +12,12 @@ const formatValue = (value) => {
   return String(value);
 };
 
-const LeadDetailsScreen = ({ route }) => {
-  const { lead } = route.params;
+const ContactDetailsScreen = ({ route }) => {
+  const { contact } = route.params;
 
   return (
     <ScrollView style={styles.container}>
-      {Object.entries(lead).map(([key, value]) => (
+      {Object.entries(contact).map(([key, value]) => (
         <View key={key} style={styles.row}>
           <Text style={styles.key}>{key}:</Text>
           <Text style={styles.value}>{formatValue(value)}</Text>
@@ -54,4 +54,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LeadDetailsScreen;
+export default ContactDetailsScreen;

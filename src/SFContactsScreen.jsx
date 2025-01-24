@@ -71,7 +71,7 @@ const SFContactsScreen = ({ navigation }) => {
         <Text style={styles.name}>{item.FirstName} {item.LastName}</Text>
       </TouchableOpacity>
 
-      <Text style={styles.detail}>Account: {item.AccountName || 'N/A'}</Text>
+      <Text style={styles.detail}>Account: {item.Account?.Name || 'N/A'}</Text>
       <Text style={styles.detail}>Title: {item.Title || 'N/A'}</Text>
       <Text style={styles.detail}>Department: {item.Department || 'N/A'}</Text>
       <Text style={styles.detail}>Phone: {item.Phone || 'N/A'}</Text>

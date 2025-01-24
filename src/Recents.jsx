@@ -282,9 +282,9 @@ const styles = StyleSheet.create({
     paddingBottom: 0,
   },
   header: {
-    fontSize: 34,
+    fontSize: 24,
     fontWeight: '700',
-    padding: 20,
+    padding: 15,
     color: Platform.OS === 'ios' ? '#000' : '#FFF',
     paddingLeft: 20,
     fontFamily: Platform.OS === 'ios' ? '-apple-system' : undefined,
