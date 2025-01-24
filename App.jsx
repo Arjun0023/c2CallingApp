@@ -10,6 +10,7 @@ import Recents from './src/Recents';
 import LeadScreen from './src/LeadScreen';
 import SFContactsScreen from './src/SFContactsScreen';
 import ContactDetailsScreen from './src/ContactDetailsScreen';
+import TasksScreen from './src/TasksScreen';
 
 const LeadStack = createStackNavigator();
 const LeadStackScreen = () => (
@@ -47,15 +48,14 @@ const App = () => {
               iconName = focused ? 'time' : 'time-outline';
             } else if (route.name === 'Phone') {
               iconName = focused ? 'call' : 'call-outline';
-            } else if (route.name === 'Contacts') {
-              iconName = focused ? 'people' : 'people-outline';
             } else if (route.name === 'Lead') {
               iconName = focused ? 'briefcase' : 'briefcase-outline';
             } else if (route.name === 'SFContacts') {
               iconName = focused ? 'person' : 'person-outline';
+            } else if (route.name === 'Tasks') {
+              iconName = focused ? 'list' : 'list-outline';
             }
 
-            // Return the icon
             return <Ionicons name={iconName} size={size} color={color} />;
           },
           tabBarActiveTintColor: '#007AFF',
@@ -65,9 +65,9 @@ const App = () => {
       >
         <Tab.Screen name="Recents" component={Recents} />
         <Tab.Screen name="Phone" component={PhoneScreen} />
-        {/* <Tab.Screen name="Contacts" component={ContactStackScreen} /> */}
         <Tab.Screen name="Lead" component={LeadStackScreen} />
         <Tab.Screen name="SFContacts" component={SFContactStackScreen} />
+        <Tab.Screen name="Tasks" component={TasksScreen} />
       </Tab.Navigator>
     </NavigationContainer>
   );
