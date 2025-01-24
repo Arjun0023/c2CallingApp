@@ -127,7 +127,7 @@ const Recents = () => {
         name: recording.name,
       });
 
-      const response = await fetch('https://e8f9-122-170-233-218.ngrok-free.app/transcribe', {
+      const response = await fetch('https://b9be-171-50-201-29.ngrok-free.app/transcribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'multipart/form-data',

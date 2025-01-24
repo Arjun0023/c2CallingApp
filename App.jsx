@@ -1,107 +1,67 @@
 import React, { useState } from 'react';
-import {
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-} from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons'; // Import Ionicons for iOS-style icons
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { StyleSheet, Text } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons'; // Import Ionicons for tab icons
 import PhoneScreen from './src/PhoneScreen';
 import ContactList from './src/ContactList';
 import ContactDetails from './src/ContactDetails';
+import LeadDetailsScreen from './src/LeadDetailsScreen';
 import Recents from './src/Recents';
 import LeadScreen from './src/LeadScreen';
 import SFContactsScreen from './src/SFContactsScreen';
 
+
+const LeadStack = createStackNavigator();
+const LeadStackScreen = () => (
+  <LeadStack.Navigator>
+    <LeadStack.Screen name="Leads" component={LeadScreen} options={{ headerShown: false }}  />
+    <LeadStack.Screen name="LeadDetailsScreen" component={LeadDetailsScreen} />
+  </LeadStack.Navigator>
+);
+
+// Main Bottom Tab Navigator
+const Tab = createBottomTabNavigator();
+
 const App = () => {
-  const [activeTab, setActiveTab] = useState('Phone');
-  const [selectedContact, setSelectedContact] = useState(null);
-
-  const renderContent = () => {
-    if (selectedContact) {
-      return (
-        <ContactDetails
-          contact={selectedContact}
-          onBack={() => setSelectedContact(null)}
-        />
-      );
-    }
-
-    switch (activeTab) {
-      case 'Phone':
-        return <PhoneScreen />;
-      case 'Contacts':
-        return <ContactList onSelectContact={setSelectedContact} />;
-      case 'Recents':
-        return <Recents />;
-      case 'Lead':
-        return <LeadScreen />;
-      case 'SF_Contacts':
-        return <SFContactsScreen />;
-      default:
-        return null;
-    }
-  };
-
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      <View style={styles.contentContainer}>{renderContent()}</View>
-      <View style={styles.tabsContainer}>
-        <Tab
-          icon="time-outline"
-          label="Recents"
-          isActive={activeTab === 'Recents'}
-          onPress={() => setActiveTab('Recents')}
-        />
-        <Tab
-          icon="call-outline"
-          label="Phone"
-          isActive={activeTab === 'Phone'}
-          onPress={() => setActiveTab('Phone')}
-        />
-        <Tab
-          icon="people-outline"
-          label="Contacts"
-          isActive={activeTab === 'Contacts'}
-          onPress={() => setActiveTab('Contacts')}
-        />
-        <Tab
-          icon="briefcase-outline"
-          label="Lead"
-          isActive={activeTab === 'Lead'}
-          onPress={() => setActiveTab('Lead')}
-        />
-        <Tab
-          icon="person-outline"
-          label="SF_Contacts"
-          isActive={activeTab === 'SF_Contacts'}
-          onPress={() => setActiveTab('SF_Contacts')}
-        />
-      </View>
-    </SafeAreaView>
+    <NavigationContainer>
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          tabBarIcon: ({ focused, color, size }) => {
+            let iconName;
+
+            if (route.name === 'Recents') {
+              iconName = focused ? 'time' : 'time-outline';
+            } else if (route.name === 'Phone') {
+              iconName = focused ? 'call' : 'call-outline';
+            } else if (route.name === 'Contacts') {
+              iconName = focused ? 'people' : 'people-outline';
+            } else if (route.name === 'Lead') {
+              iconName = focused ? 'briefcase' : 'briefcase-outline';
+            } else if (route.name === 'SFContacts') {
+              iconName = focused ? 'person' : 'person-outline';
+            }
+
+            // Return the icon
+            return <Ionicons name={iconName} size={size} color={color} />;
+          },
+          tabBarActiveTintColor: '#007AFF',
+          tabBarInactiveTintColor: 'gray',
+          headerShown: false,
+        })}
+      >
+        <Tab.Screen name="Recents" component={Recents} />
+        <Tab.Screen name="Phone" component={PhoneScreen} />
+        {/* <Tab.Screen name="Contacts" component={ContactStackScreen} /> */}
+        <Tab.Screen name="Lead" component={LeadStackScreen} />
+        <Tab.Screen name="SFContacts" component={SFContactsScreen} />
+      </Tab.Navigator>
+    </NavigationContainer>
   );
 };
 
-const Tab = ({ icon, label, isActive, onPress }) => {
-  return (
-    <TouchableOpacity
-      style={[styles.tab, isActive && styles.activeTab]}
-      onPress={onPress}
-    >
-      <Ionicons
-        name={icon}
-        size={28}
-        color={isActive ? '#007AFF' : '#8E8E93'}
-      />
-      <Text style={[styles.tabText, isActive && styles.activeTabText]}>
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
-};
 
 const styles = StyleSheet.create({
   container: {

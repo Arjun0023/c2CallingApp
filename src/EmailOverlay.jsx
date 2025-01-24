@@ -9,7 +9,7 @@ const Overlay = ({ visible, onClose, transcription }) => {
   const [showTranscription, setShowTranscription] = useState(true);
   const [dropdownExpanded, setDropdownExpanded] = useState(false);
 
-  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjZW9AYzIudGVjaCIsInJvbGUiOiJleGVjdXRpdmUiLCJleHAiOjE3Mzc2ODk4NDF9.CIJd_3OAs8SHv4EoEdqCC2MiXEq7VB7qPD4FuEZhhRU';
+  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjZW9AYzIudGVjaCIsInJvbGUiOiJleGVjdXRpdmUiLCJleHAiOjE3Mzc3NzIyOTR9.E0qS1Z_oczzKM5rMIlX8mrn4eHUKkDiAGBNHSd_CE4o';
 
   const dropdownOptions = [
     { label: 'Cold Email Outreach', type: 'Cold Email Outreach', icon: 'email' },
@@ -30,7 +30,7 @@ const Overlay = ({ visible, onClose, transcription }) => {
     const prefix = `Write an email for ${option.type} using the below notes from the user:`;
 
     try {
-      const response = await fetch('https://e8f9-122-170-233-218.ngrok-free.app/convert-to-email', {
+      const response = await fetch('https://b9be-171-50-201-29.ngrok-free.app/convert-to-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
