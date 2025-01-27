@@ -49,7 +49,7 @@ const Meetings = ({ navigation }) => {
       });
 
       const response = await fetch(
-        'https://b9be-171-50-201-29.ngrok-free.app/transcribe',
+        'https://4c59-171-50-200-145.ngrok-free.app/transcribe',
         {
           method: 'POST',
           headers: {

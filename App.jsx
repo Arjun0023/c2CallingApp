@@ -18,10 +18,14 @@ import ComingSoon from './src/ComingSoon';
 // Lead Stack
 const LeadStack = createStackNavigator();
 const LeadStackScreen = () => (
-  <LeadStack.Navigator>
-    <LeadStack.Screen name="Leads" component={LeadScreen} options={{ headerShown: false }} />
-    <LeadStack.Screen
-      name="LeadDetails"
+  <LeadStack.Navigator screenOptions={{ headerShown: false }}>
+    <LeadStack.Screen 
+      name="Leads" 
+      component={LeadScreen}
+      options={{ title: 'Leads' }}
+    />
+    <LeadStack.Screen 
+      name="LeadDetailsScreen" 
       component={LeadDetailsScreen}
       options={{ title: 'Lead Details' }}
     />
@@ -31,14 +35,14 @@ const LeadStackScreen = () => (
 // SFContacts Stack
 const SFContactStack = createStackNavigator();
 const SFContactStackScreen = () => (
-  <SFContactStack.Navigator>
-    <SFContactStack.Screen
-      name="SFContactsList"
+  <SFContactStack.Navigator screenOptions={{ headerShown: false }}>
+    <SFContactStack.Screen 
+      name="Contacts" 
       component={SFContactsScreen}
-      options={{ headerShown: false }}
+      options={{ title: 'Contacts' }}
     />
-    <SFContactStack.Screen
-      name="ContactDetails"
+    <SFContactStack.Screen 
+      name="ContactDetailsScreen" 
       component={ContactDetailsScreen}
       options={{ title: 'Contact Details' }}
     />
@@ -48,28 +52,22 @@ const SFContactStackScreen = () => (
 // Meetings Stack
 const MeetingsStack = createStackNavigator();
 const MeetingsStackScreen = () => (
-  <MeetingsStack.Navigator>
-    <MeetingsStack.Screen
-      name="MeetingsHome"
+  <MeetingsStack.Navigator screenOptions={{ headerShown: false }}>
+    <MeetingsStack.Screen 
+      name="MeetingsList" 
       component={Meetings}
-      options={{ headerShown: false }}
+      options={{ title: 'Meetings' }}
     />
-    <MeetingsStack.Screen
-      name="RecordMeeting"
+    <MeetingsStack.Screen 
+      name="RecordMeeting" 
       component={RecordMeeting}
       options={{ title: 'Record Meeting' }}
-    />
-    <MeetingsStack.Screen
-      name="ComingSoon"
-      component={ComingSoon}
-      options={{ title: 'Coming Soon' }}
     />
   </MeetingsStack.Navigator>
 );
 
 // Main Bottom Tab Navigator
 const Tab = createBottomTabNavigator();
-
 const App = () => {
   return (
     <NavigationContainer>
@@ -77,7 +75,6 @@ const App = () => {
         screenOptions={({ route }) => ({
           tabBarIcon: ({ focused, color, size }) => {
             let iconName;
-
             if (route.name === 'Recents') {
               iconName = focused ? 'time' : 'time-outline';
             } else if (route.name === 'Lead') {
@@ -89,7 +86,6 @@ const App = () => {
             } else if (route.name === 'Meetings') {
               iconName = focused ? 'calendar' : 'calendar-outline';
             }
-
             return <Ionicons name={iconName} size={size} color={color} />;
           },
           tabBarActiveTintColor: '#007AFF',

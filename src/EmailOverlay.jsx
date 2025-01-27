@@ -9,7 +9,7 @@ const Overlay = ({ visible, onClose, transcription }) => {
   const [showTranscription, setShowTranscription] = useState(true);
   const [dropdownExpanded, setDropdownExpanded] = useState(false);
 
-  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjZW9AYzIudGVjaCIsInJvbGUiOiJleGVjdXRpdmUiLCJleHAiOjE3Mzc3NzIyOTR9.E0qS1Z_oczzKM5rMIlX8mrn4eHUKkDiAGBNHSd_CE4o';
+  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjZW9AYzIudGVjaCIsInJvbGUiOiJleGVjdXRpdmUiLCJleHAiOjE3MzgwMjg5NzV9.KkU84FwXr_PKGI5VM_kETtHTgVaItCBKDSYQcWQ9eHA';
 
   const dropdownOptions = [
     { label: 'Cold Email Outreach', type: 'Cold Email Outreach', icon: 'email' },

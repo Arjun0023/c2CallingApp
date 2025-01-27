@@ -6,8 +6,8 @@ const SFContactsScreen = ({ navigation }) => {
   const [contacts, setContacts] = useState([]);
   const [filteredContacts, setFilteredContacts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const BASE_URL = 'https://b9be-171-50-201-29.ngrok-free.app'; // Replace with your actual BASE_URL
-  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjZW9AYzIudGVjaCIsInJvbGUiOiJleGVjdXRpdmUiLCJleHAiOjE3Mzc3NzIyOTR9.E0qS1Z_oczzKM5rMIlX8mrn4eHUKkDiAGBNHSd_CE4o'; // Replace with your token
+  const BASE_URL = 'https://4c59-171-50-200-145.ngrok-free.app'; // Replace with your actual BASE_URL
+  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjZW9AYzIudGVjaCIsInJvbGUiOiJleGVjdXRpdmUiLCJleHAiOjE3MzgwMjg5NzV9.KkU84FwXr_PKGI5VM_kETtHTgVaItCBKDSYQcWQ9eHA'; // Replace with your token
 
   useEffect(() => {
     const fetchContacts = async () => {
