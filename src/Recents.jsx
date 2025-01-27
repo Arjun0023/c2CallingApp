@@ -15,6 +15,7 @@ import CallLogs from 'react-native-call-log';
 import Icon from 'react-native-vector-icons/Ionicons';
 import RNFS from 'react-native-fs';
 import Overlay from './EmailOverlay';
+import { appendAuthHeader } from './apiClient';
 
 const HEADER_HEIGHT = 10;
 const Recents = () => {
@@ -24,7 +25,7 @@ const Recents = () => {
   const [scrollY] = useState(new Animated.Value(0));
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [selectedTranscription, setSelectedTranscription] = useState('');
-
+  const BASE_URL = 'https://4c59-171-50-200-145.ngrok-free.app';
   useEffect(() => {
     requestPermissionsAndFetchLogs();
   }, []);
@@ -127,11 +128,13 @@ const Recents = () => {
         name: recording.name,
       });
 
-      const response = await fetch('https://4c59-171-50-200-145.ngrok-free.app/transcribe', {
+      const headers = await appendAuthHeader({
+        'Content-Type': 'multipart/form-data',
+      });
+  
+      const response = await fetch(`${BASE_URL}/transcribe`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers,
         body: formData,
       });
 

@@ -12,6 +12,7 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import RNFS from 'react-native-fs';
+import { appendAuthHeader } from './apiClient';
 
 const Meetings = ({ navigation }) => {
   const [meetings, setMeetings] = useState([]);
@@ -47,14 +48,14 @@ const Meetings = ({ navigation }) => {
         type: 'audio/mpeg',
         name: item.file.split('/').pop(),
       });
-
+      const headers = await appendAuthHeader({
+        'Content-Type': 'multipart/form-data',
+      });
       const response = await fetch(
         'https://4c59-171-50-200-145.ngrok-free.app/transcribe',
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+          headers,
           body: formData,
         }
       );

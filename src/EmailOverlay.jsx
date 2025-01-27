@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, Modal, TouchableOpacity, TextInput, StyleSheet, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Clipboard from '@react-native-clipboard/clipboard';
+import { appendAuthHeader } from './apiClient';
 
 const Overlay = ({ visible, onClose, transcription }) => {
   const [selectedOptionType, setSelectedOptionType] = useState(null);
@@ -9,7 +10,6 @@ const Overlay = ({ visible, onClose, transcription }) => {
   const [showTranscription, setShowTranscription] = useState(true);
   const [dropdownExpanded, setDropdownExpanded] = useState(false);
 
-  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjZW9AYzIudGVjaCIsInJvbGUiOiJleGVjdXRpdmUiLCJleHAiOjE3MzgwMjg5NzV9.KkU84FwXr_PKGI5VM_kETtHTgVaItCBKDSYQcWQ9eHA';
 
   const dropdownOptions = [
     { label: 'Cold Email Outreach', type: 'Cold Email Outreach', icon: 'email' },
@@ -30,12 +30,12 @@ const Overlay = ({ visible, onClose, transcription }) => {
     const prefix = `Write an email for ${option.type} using the below notes from the user:`;
 
     try {
-      const response = await fetch('https://b9be-171-50-201-29.ngrok-free.app/convert-to-email', {
+      const headers = await appendAuthHeader({
+        'Content-Type': 'application/json',
+      });
+      const response = await fetch('https://4c59-171-50-200-145.ngrok-free.app/convert-to-email', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers,
         body: JSON.stringify({
           paragraph: `${prefix} ${transcription}`,
           object: 'Lead',

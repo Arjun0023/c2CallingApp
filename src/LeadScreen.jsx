@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Linking, TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { appendAuthHeader } from './apiClient';
 
 const BASE_URL = 'https://4c59-171-50-200-145.ngrok-free.app'; // Replace with your actual BASE_URL
-const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjZW9AYzIudGVjaCIsInJvbGUiOiJleGVjdXRpdmUiLCJleHAiOjE3MzgwMjg5NzV9.KkU84FwXr_PKGI5VM_kETtHTgVaItCBKDSYQcWQ9eHA'; // Replace with your token
+
 
 const LeadScreen = ({ navigation }) => {
   const [leads, setLeads] = useState([]);
@@ -13,12 +14,12 @@ const LeadScreen = ({ navigation }) => {
   useEffect(() => {
     const fetchLeads = async () => {
       try {
+        const headers = await appendAuthHeader({
+          'Content-Type': 'multipart/form-data',
+        });
         const response = await fetch(`${BASE_URL}/salesforce/read`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
+          headers,
           body: JSON.stringify({ object: 'Lead', page: 0, pageSize: 10 }),
         });
 

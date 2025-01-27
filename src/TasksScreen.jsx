@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-
+import { getAuthHeader,appendAuthHeader } from './apiClient';
 const BASE_URL = 'https://4c59-171-50-200-145.ngrok-free.app'; // Replace with your actual BASE_URL
-const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjZW9AYzIudGVjaCIsInJvbGUiOiJleGVjdXRpdmUiLCJleHAiOjE3MzgwMjg5NzV9.KkU84FwXr_PKGI5VM_kETtHTgVaItCBKDSYQcWQ9eHA'; // Replace with your token
+
 
 const TasksScreen = () => {
   const [tasks, setTasks] = useState([]);
@@ -13,12 +13,13 @@ const TasksScreen = () => {
   useEffect(() => {
     const fetchTasks = async () => {
       try {
+        const headers = await appendAuthHeader({
+          'Content-Type': 'application/json',
+        });
+  
         const response = await fetch(`${BASE_URL}/salesforce/read`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
+          headers,
           body: JSON.stringify({ object: 'Task', page: 0, pageSize: 10 }),
         });
 
