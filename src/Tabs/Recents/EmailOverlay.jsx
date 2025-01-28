@@ -3,7 +3,7 @@ import { View, Text, Modal, TouchableOpacity, TextInput, StyleSheet, Alert } fro
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { appendAuthHeader } from '../../utils/auth/apiClient';
-import { BASE_URL } from '@env';
+import {BASE_URL} from '@env';
 
 const Overlay = ({ visible, onClose, transcription }) => {
   const [selectedOptionType, setSelectedOptionType] = useState(null);

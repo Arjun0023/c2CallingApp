@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Linking } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { appendAuthHeader } from '../../utils/auth/apiClient';
-import { BASE_URL } from '@env';
+import {BASE_URL} from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SFContactsScreen = ({ navigation }) => {
@@ -10,12 +10,13 @@ const SFContactsScreen = ({ navigation }) => {
   const [filteredContacts, setFilteredContacts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   //const BASE_URL = 'https://4c59-171-50-200-145.ngrok-free.app'; // Replace with your actual BASE_URL
-
+  const [isLoading, setIsLoading] = useState(true);
 
   
   useEffect(() => {
     const fetchContacts = async () => {
       try {
+        setIsLoading(true);
         const headers = await appendAuthHeader({
           'Content-Type': 'application/json',
         });
@@ -34,6 +35,8 @@ const SFContactsScreen = ({ navigation }) => {
         setFilteredContacts(data.Contact || []); // Initialize filteredContacts
       } catch (error) {
         console.error('Error fetching contacts:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 

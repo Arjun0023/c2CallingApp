@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Linking, TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { appendAuthHeader } from '../../utils/auth/apiClient';
-import { BASE_URL } from '@env';
+import {BASE_URL} from '@env';
 //const BASE_URL = 'https://4c59-171-50-200-145.ngrok-free.app'; // Replace with your actual BASE_URL
 import { callHandlerService } from './callHandlerService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -11,10 +11,12 @@ const LeadScreen = ({ navigation }) => {
   const [leads, setLeads] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredLeads, setFilteredLeads] = useState([]);
-
+  const [isLoading, setIsLoading] = useState(true); // Loading state
+console.log('BASE_URL:', BASE_URL);
   useEffect(() => {
     const fetchLeads = async () => {
       try {
+        setIsLoading(true); // Show loader
         const headers = await appendAuthHeader({
           'Content-Type': 'multipart/form-data',
         });
@@ -23,7 +25,6 @@ const LeadScreen = ({ navigation }) => {
           headers,
           body: JSON.stringify({ object: 'Lead', page: 0, pageSize: 10 }),
         });
-
         if (!response.ok) {
           throw new Error('Failed to fetch leads');
         }
@@ -33,6 +34,10 @@ const LeadScreen = ({ navigation }) => {
         setFilteredLeads(data.Lead || []); // Initialize filteredLeads with the fetched data
       } catch (error) {
         console.error('Error fetching leads:', error);
+        fetchLeads();
+      }
+      finally {
+        setIsLoading(false); // Hide loader
       }
     };
 

@@ -3,16 +3,17 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput } from 'r
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { appendAuthHeader } from '../../utils/auth/apiClient';
 //const BASE_URL = 'https://4c59-171-50-200-145.ngrok-free.app'; // Replace with your actual BASE_URL
-import { BASE_URL } from '@env';
+import {BASE_URL} from '@env';
 
 const TasksScreen = () => {
   const [tasks, setTasks] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredTasks, setFilteredTasks] = useState([]);
-
+  const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     const fetchTasks = async () => {
       try {
+        setIsLoading(true);
         const headers = await appendAuthHeader({
           'Content-Type': 'application/json',
         });
@@ -32,6 +33,8 @@ const TasksScreen = () => {
         setFilteredTasks(data.Task || []);
       } catch (error) {
         console.error('Error fetching tasks:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 

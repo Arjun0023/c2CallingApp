@@ -16,7 +16,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import RNFS from 'react-native-fs';
 import Overlay from './EmailOverlay';
 import { appendAuthHeader } from '../../utils/auth/apiClient';
-import { BASE_URL } from '@env';
+import {BASE_URL} from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const HEADER_HEIGHT = 10;
@@ -217,11 +217,11 @@ const findRecordingFile = async (phoneNumber, timestamp, duration) => {
   }, [callLogs]);
   const renderItem = ({ item }) =>  {
     // Log what name we're using
-    console.log('Rendering item:', {
-      phoneNumber: item.phoneNumber,
-      originalName: item.name,
-      storedName: displayNames[item.phoneNumber]
-    });
+    // console.log('Rendering item:', {
+    //   phoneNumber: item.phoneNumber,
+    //   originalName: item.name,
+    //   storedName: displayNames[item.phoneNumber]
+    // });
 
     const displayName = item.name && item.name !== 'Unknown' 
       ? item.name 

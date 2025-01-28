@@ -11,7 +11,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import qs from 'qs';
 import { useNavigation } from '@react-navigation/native';
-import { BASE_URL } from '@env';
+import {BASE_URL} from '@env';
 //const BASE_URL = 'https://4c59-171-50-200-145.ngrok-free.app';
 
 const SignInScreen = ({ onSignIn }) => {
@@ -27,6 +27,7 @@ const SignInScreen = ({ onSignIn }) => {
     setError('');
 
     try {
+      setLoading(true);
       const formData = qs.stringify({
         grant_type: 'password',
         username: email,
@@ -37,6 +38,11 @@ const SignInScreen = ({ onSignIn }) => {
         tenant_name: orgName,
       });
 
+
+      // Explicitly check the formData is non-empty
+      if (!formData) {
+        throw new Error('FormData is empty');
+      }
       const response = await fetch(`${BASE_URL}/login`, {
         method: 'POST',
         headers: {
