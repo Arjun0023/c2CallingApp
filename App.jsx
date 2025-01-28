@@ -18,6 +18,7 @@ import RecordMeeting from './src/RecordMeeting';
 import ComingSoon from './src/ComingSoon';
 import SignInScreen from './src/SignInScreen';
 import { AuthContext } from './src/AuthContext';
+import UserProfileScreen from './src/UserProfileScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -79,6 +80,15 @@ const MeetingsStackScreen = () => (
       name="RecordMeeting" 
       component={RecordMeeting}
       options={{ title: 'Record Meeting' }}
+    />
+     <MeetingsStack.Screen
+      name="UserProfile"
+      component={UserProfileScreen}
+      options={{ 
+        title: 'Profile',
+        headerShown: true,
+        presentation: 'modal'
+      }}
     />
   </MeetingsStack.Navigator>
 );

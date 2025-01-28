@@ -14,13 +14,15 @@ import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import RNFS from 'react-native-fs';
 import { appendAuthHeader } from './apiClient';
 import { BASE_URL } from '@env';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import UserAvatar from './UserAvatar';
 
 const Meetings = ({ navigation }) => {
   const [meetings, setMeetings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [transcribing, setTranscribing] = useState(null); // To track which file is being transcribed
   const audioRecorderPlayer = new AudioRecorderPlayer();
+  const [userEmail, setUserEmail] = useState('');
 
   const fetchMeetings = async () => {
     try {
@@ -39,8 +41,19 @@ const Meetings = ({ navigation }) => {
 
   useEffect(() => {
     fetchMeetings();
+    loadUserEmail();
   }, []);
-
+  const loadUserEmail = async () => {
+    try {
+      const userDataString = await AsyncStorage.getItem('userData');
+      if (userDataString) {
+        const userData = JSON.parse(userDataString);
+        setUserEmail(userData.email);
+      }
+    } catch (error) {
+      console.error('Error loading user email:', error);
+    }
+  };
   const transcribeRecording = async (item) => {
     try {
       setTranscribing(item.file); // Set the current transcribing file
@@ -129,7 +142,13 @@ const Meetings = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+    <View style={styles.headerContainer}>
       <Text style={styles.header}>Meetings</Text>
+      <UserAvatar 
+          email={userEmail}
+          onPress={() => navigation.navigate('UserProfile')}
+        />
+        </View>
       {loading ? (
         <ActivityIndicator size="large" color="#007AFF" />
       ) : (
@@ -175,6 +194,19 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     padding: 10,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 10,
+    backgroundColor: Platform.OS === 'ios' ? '#F2F2F7' : '#007AFF',
+    elevation: 4,
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: Platform.OS === 'ios' ? '#000' : '#FFF',
   },
   meetingItem: {
     backgroundColor: '#FFF',
