@@ -16,6 +16,8 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import RNFS from 'react-native-fs';
 import Overlay from './EmailOverlay';
 import { appendAuthHeader } from './apiClient';
+import { BASE_URL } from '@env';
+
 
 const HEADER_HEIGHT = 10;
 const Recents = () => {
@@ -25,7 +27,7 @@ const Recents = () => {
   const [scrollY] = useState(new Animated.Value(0));
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [selectedTranscription, setSelectedTranscription] = useState('');
-  const BASE_URL = 'https://4c59-171-50-200-145.ngrok-free.app';
+  //const BASE_URL = 'https://4c59-171-50-200-145.ngrok-free.app';
   useEffect(() => {
     requestPermissionsAndFetchLogs();
   }, []);
@@ -62,54 +64,50 @@ const Recents = () => {
            ('0' + date.getSeconds()).slice(-2);
   };
 
-  const findRecordingFile = async (phoneNumber, timestamp, duration) => {
+const findRecordingFile = async (phoneNumber, timestamp, duration) => {
+  const possiblePaths = [
+    `${RNFS.ExternalStorageDirectoryPath}/MIUI/sound_recorder/call_rec`,
+    `${RNFS.ExternalStorageDirectoryPath}/Recordings/Call`,
+    `${RNFS.ExternalStorageDirectoryPath}/Sounds/Recordings`,
+    `${RNFS.ExternalStorageDirectoryPath}/Record/Call`,
+    `${RNFS.ExternalStorageDirectoryPath}/Recordings/Call`,
+      // Add more paths based on your research
+      // e.g., `${RNFS.ExternalStorageDirectoryPath}/Samsung/Recordings/Call`
+  ];
+
+  for (const recordingsPath of possiblePaths) {
     try {
-      const recordingsPath = `${RNFS.ExternalStorageDirectoryPath}/MIUI/sound_recorder/call_rec`;
-      
-      if (!(await RNFS.exists(recordingsPath))) {
-        throw new Error('Recordings directory not found');
-      }
-
+     if (!(await RNFS.exists(recordingsPath))) {
+         continue; // Skip if path doesn't exist
+     }
+     
       const files = await RNFS.readDir(recordingsPath);
-      
-      // Calculate the call start time
-      const callEndTime = new Date(timestamp);
-      const callStartTime = new Date(timestamp - (duration * 1000)); // duration is in seconds
-      
-      // Format the timestamp for comparison
-      const startTimeStr = formatDateForRecording(callStartTime);
-      
-      // Clean phone number (remove special characters)
-      const cleanNumber = phoneNumber.replace(/\D/g, '');
+      // Rest of your file searching logic remains the same, just replace the hardcoded path with recordingsPath 
+       const callEndTime = new Date(timestamp);
+       const callStartTime = new Date(timestamp - (duration * 1000));
+       const startTimeStr = formatDateForRecording(callStartTime);
+       const cleanNumber = phoneNumber.replace(/\D/g, '');
 
-      // Look for a file that matches the pattern: Call@contactname(phonenumber)_timestamp.mp3
-      const recording = files.find(file => {
-        const fileName = file.name;
-        
-        // Check if file contains the phone number
-        if (!fileName.includes(cleanNumber)) {
-          return false;
-        }
-
-        // Extract timestamp from filename (last 14 digits before .mp3)
-        const fileTimestamp = fileName.match(/_(\d{14})\.mp3$/);
-        if (!fileTimestamp) {
-          return false;
-        }
-
-        // Compare the timestamp
-        // The file timestamp should be close to the call start time
-        // Allow for a few seconds of difference
-        const timeDiff = Math.abs(parseInt(fileTimestamp[1]) - parseInt(startTimeStr));
-        return timeDiff < 100; // Allow for a small time difference
-      });
-
-      return recording;
+       const recording = files.find(file => {
+         const fileName = file.name;
+         if (!fileName.includes(cleanNumber)) {
+           return false;
+         }
+         const fileTimestamp = fileName.match(/_(\d{14})\.mp3$/);
+         if (!fileTimestamp) {
+           return false;
+         }
+         const timeDiff = Math.abs(parseInt(fileTimestamp[1]) - parseInt(startTimeStr));
+         return timeDiff < 100;
+       });
+       if(recording) return recording;
     } catch (error) {
-      console.error('Error finding recording:', error);
-      return null;
+        console.error('Error searching in directory:', recordingsPath, error)
     }
-  };
+  }
+
+  return null; // No recording found in any paths
+};
 
   const transcribeRecording = async (phoneNumber, timestamp, duration, logId) => {
     try {

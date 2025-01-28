@@ -2,13 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Linking } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { appendAuthHeader } from './apiClient';
+import { BASE_URL } from '@env';
 
 const SFContactsScreen = ({ navigation }) => {
   const [contacts, setContacts] = useState([]);
   const [filteredContacts, setFilteredContacts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const BASE_URL = 'https://4c59-171-50-200-145.ngrok-free.app'; // Replace with your actual BASE_URL
+  //const BASE_URL = 'https://4c59-171-50-200-145.ngrok-free.app'; // Replace with your actual BASE_URL
 
+
+  
   useEffect(() => {
     const fetchContacts = async () => {
       try {

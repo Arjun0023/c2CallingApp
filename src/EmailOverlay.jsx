@@ -3,6 +3,7 @@ import { View, Text, Modal, TouchableOpacity, TextInput, StyleSheet, Alert } fro
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { appendAuthHeader } from './apiClient';
+import { BASE_URL } from '@env';
 
 const Overlay = ({ visible, onClose, transcription }) => {
   const [selectedOptionType, setSelectedOptionType] = useState(null);
@@ -33,7 +34,7 @@ const Overlay = ({ visible, onClose, transcription }) => {
       const headers = await appendAuthHeader({
         'Content-Type': 'application/json',
       });
-      const response = await fetch('https://4c59-171-50-200-145.ngrok-free.app/convert-to-email', {
+      const response = await fetch(`${BASE_URL}/convert-to-email`, {
         method: 'POST',
         headers,
         body: JSON.stringify({

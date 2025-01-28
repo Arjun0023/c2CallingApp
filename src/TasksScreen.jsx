@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { getAuthHeader,appendAuthHeader } from './apiClient';
-const BASE_URL = 'https://4c59-171-50-200-145.ngrok-free.app'; // Replace with your actual BASE_URL
-
+//const BASE_URL = 'https://4c59-171-50-200-145.ngrok-free.app'; // Replace with your actual BASE_URL
+import { BASE_URL } from '@env';
 
 const TasksScreen = () => {
   const [tasks, setTasks] = useState([]);

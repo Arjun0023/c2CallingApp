@@ -11,8 +11,8 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import qs from 'qs';
 import { useNavigation } from '@react-navigation/native';
-
-const BASE_URL = 'https://4c59-171-50-200-145.ngrok-free.app';
+import { BASE_URL } from '@env';
+//const BASE_URL = 'https://4c59-171-50-200-145.ngrok-free.app';
 
 const SignInScreen = ({ onSignIn }) => {
   const [email, setEmail] = useState('');
