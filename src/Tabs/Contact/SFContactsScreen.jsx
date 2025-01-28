@@ -1,72 +1,63 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Linking, TextInput } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Linking } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { appendAuthHeader } from './apiClient';
+import { appendAuthHeader } from '../../utils/auth/apiClient';
 import { BASE_URL } from '@env';
-//const BASE_URL = 'https://4c59-171-50-200-145.ngrok-free.app'; // Replace with your actual BASE_URL
-import { callHandlerService } from './callHandlerService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const LeadScreen = ({ navigation }) => {
-  const [leads, setLeads] = useState([]);
+const SFContactsScreen = ({ navigation }) => {
+  const [contacts, setContacts] = useState([]);
+  const [filteredContacts, setFilteredContacts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredLeads, setFilteredLeads] = useState([]);
+  //const BASE_URL = 'https://4c59-171-50-200-145.ngrok-free.app'; // Replace with your actual BASE_URL
 
+
+  
   useEffect(() => {
-    const fetchLeads = async () => {
+    const fetchContacts = async () => {
       try {
         const headers = await appendAuthHeader({
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/json',
         });
         const response = await fetch(`${BASE_URL}/salesforce/read`, {
           method: 'POST',
           headers,
-          body: JSON.stringify({ object: 'Lead', page: 0, pageSize: 10 }),
+          body: JSON.stringify({ object: 'Contact', page: 0, pageSize: 10 }),
         });
 
         if (!response.ok) {
-          throw new Error('Failed to fetch leads');
+          throw new Error('Failed to fetch contacts');
         }
 
         const data = await response.json();
-        setLeads(data.Lead || []);
-        setFilteredLeads(data.Lead || []); // Initialize filteredLeads with the fetched data
+        setContacts(data.Contact || []);
+        setFilteredContacts(data.Contact || []); // Initialize filteredContacts
       } catch (error) {
-        console.error('Error fetching leads:', error);
+        console.error('Error fetching contacts:', error);
       }
     };
 
-    fetchLeads();
+    fetchContacts();
   }, []);
 
-  // const handleSearch = (query) => {
-  //   setSearchQuery(query);
-  //   if (query) {
-  //     const filtered = leads.filter((lead) =>
-  //       `${lead.FirstName} ${lead.LastName}`.toLowerCase().includes(query.toLowerCase())
-  //     );
-  //     setFilteredLeads(filtered);
-  //   } else {
-  //     setFilteredLeads(leads);
-  //   }
-  // };
   const handleSearch = (query) => {
     setSearchQuery(query);
-  
+
     if (query.trim() === '') {
-      setFilteredLeads(leads); // Reset to original leads if search is empty
+      setFilteredContacts(contacts); // Reset to original contacts if search is empty
     } else {
       const lowercasedQuery = query.toLowerCase();
-      const filtered = leads.filter((lead) =>
-        (lead.FirstName && lead.FirstName.toLowerCase().includes(lowercasedQuery)) ||
-        (lead.LastName && lead.LastName.toLowerCase().includes(lowercasedQuery)) ||
-        (lead.Phone && lead.Phone.toLowerCase().includes(lowercasedQuery)) ||
-        (lead.Title && lead.Title.toLowerCase().includes(lowercasedQuery)) ||
-        (lead.AccountName && lead.AccountName.toLowerCase().includes(lowercasedQuery))
+      const filtered = contacts.filter((contact) =>
+        (contact.FirstName && contact.FirstName.toLowerCase().includes(lowercasedQuery)) ||
+        (contact.LastName && contact.LastName.toLowerCase().includes(lowercasedQuery)) ||
+        (contact.Phone && contact.Phone.toLowerCase().includes(lowercasedQuery)) ||
+        (contact.Title && contact.Title.toLowerCase().includes(lowercasedQuery)) ||
+        (contact.AccountName && contact.AccountName.toLowerCase().includes(lowercasedQuery))
       );
-      setFilteredLeads(filtered);
+      setFilteredContacts(filtered);
     }
   };
+
   const handleCall = async (phone, item) => {
     if (phone) {
       try {
@@ -88,23 +79,20 @@ const LeadScreen = ({ navigation }) => {
     }
   };
 
-  const renderLead = ({ item }) => (
+  const renderContact = ({ item }) => (
     <View style={styles.card}>
-      {/* Name as a touchable link to LeadDetails */}
       <TouchableOpacity
-        onPress={() => navigation.navigate('LeadDetailsScreen', { lead: item })}
+        onPress={() => navigation.navigate('ContactDetailsScreen', { contact: item })}
         style={styles.nameContainer}
       >
         <Text style={styles.name}>{item.FirstName} {item.LastName}</Text>
       </TouchableOpacity>
 
-      {/* Lead Details */}
-      <Text style={styles.detail}>Company: {item.Company || 'N/A'}</Text>
+      <Text style={styles.detail}>Account: {item.Account?.Name || 'N/A'}</Text>
       <Text style={styles.detail}>Title: {item.Title || 'N/A'}</Text>
-      <Text style={styles.detail}>City: {item.City || 'N/A'}</Text>
+      <Text style={styles.detail}>Department: {item.Department || 'N/A'}</Text>
       <Text style={styles.detail}>Phone: {item.Phone || 'N/A'}</Text>
 
-      {/* Call Icon */}
       {item.Phone && (
         <TouchableOpacity style={styles.callButton} onPress={() => handleCall(item.Phone, item)}>
           <Icon name="call" size={24} color="white" />
@@ -115,27 +103,26 @@ const LeadScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search Leads..."
-          placeholderTextColor="#8e8e93"
-          value={searchQuery}
-          onChangeText={handleSearch}
-        />
-        <Icon name="search" size={24} color="#888" style={styles.searchIcon} />
+    <View style={styles.searchContainer}>
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Search Contacts..."
+        placeholderTextColor="#8e8e93"
+        value={searchQuery}
+        onChangeText={handleSearch}
+      />
+      <Icon name="search" size={24} color="#888" style={styles.searchIcon} />
       </View>
-
-      {filteredLeads.length > 0 ? (
+      {filteredContacts.length > 0 ? (
         <FlatList
-          data={filteredLeads}
+          data={filteredContacts}
           keyExtractor={(item) => item.Id}
-          renderItem={renderLead}
+          renderItem={renderContact}
           contentContainerStyle={styles.list}
         />
+        
       ) : (
-        <Text style={styles.emptyText}>No leads available</Text>
+        <Text style={styles.emptyText}>No contacts found</Text>
       )}
     </View>
   );
@@ -220,4 +207,4 @@ emptyText: {
   // },
 });
 
-export default LeadScreen;
+export default SFContactsScreen;

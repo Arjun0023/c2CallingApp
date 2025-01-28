@@ -12,10 +12,10 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
 import RNFS from 'react-native-fs';
-import { appendAuthHeader } from './apiClient';
+import { appendAuthHeader } from '../../utils/auth/apiClient';
 import { BASE_URL } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import UserAvatar from './UserAvatar';
+import UserAvatar from '../../components/UserAvatar';
 
 const Meetings = ({ navigation }) => {
   const [meetings, setMeetings] = useState([]);

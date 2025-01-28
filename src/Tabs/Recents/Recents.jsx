@@ -15,7 +15,7 @@ import CallLogs from 'react-native-call-log';
 import Icon from 'react-native-vector-icons/Ionicons';
 import RNFS from 'react-native-fs';
 import Overlay from './EmailOverlay';
-import { appendAuthHeader } from './apiClient';
+import { appendAuthHeader } from '../../utils/auth/apiClient';
 import { BASE_URL } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 

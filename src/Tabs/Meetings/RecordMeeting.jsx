@@ -88,6 +88,7 @@ const RecordMeeting = ({ route, navigation }) => {
         value={meetingName}
         onChangeText={setMeetingName}
         placeholder="Enter meeting name"
+        placeholderTextColor="grey"
       />
       <Text style={styles.timerText}>{recordTime}</Text>
       <TouchableOpacity

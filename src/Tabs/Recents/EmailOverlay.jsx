@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, Modal, TouchableOpacity, TextInput, StyleSheet, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { appendAuthHeader } from './apiClient';
+import { appendAuthHeader } from '../../utils/auth/apiClient';
 import { BASE_URL } from '@env';
 
 const Overlay = ({ visible, onClose, transcription }) => {

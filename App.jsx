@@ -7,18 +7,18 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Import your components
-import Recents from './src/Recents';
-import LeadScreen from './src/LeadScreen';
-import LeadDetailsScreen from './src/LeadDetailsScreen';
-import SFContactsScreen from './src/SFContactsScreen';
-import ContactDetailsScreen from './src/ContactDetailsScreen';
-import TasksScreen from './src/TasksScreen';
-import Meetings from './src/Meetings';
-import RecordMeeting from './src/RecordMeeting';
-import ComingSoon from './src/ComingSoon';
-import SignInScreen from './src/SignInScreen';
-import { AuthContext } from './src/AuthContext';
-import UserProfileScreen from './src/UserProfileScreen';
+import Recents from './src/Tabs/Recents/Recents';
+import LeadScreen from './src/Tabs/Lead/LeadScreen';
+import LeadDetailsScreen from './src/Tabs/Lead/LeadDetailsScreen';
+import SFContactsScreen from './src/Tabs/Contact/SFContactsScreen';
+import ContactDetailsScreen from './src/Tabs/Contact/ContactDetailsScreen';
+import TasksScreen from './src/Tabs/Task/TasksScreen';
+import Meetings from './src/Tabs/Meetings/Meetings';
+import RecordMeeting from './src/Tabs/Meetings/RecordMeeting';
+import ComingSoon from './src/Tabs/Meetings/ComingSoon';
+import SignInScreen from './src/components/SignInScreen';
+import { AuthContext } from './src/utils/auth/AuthContext';
+import UserProfileScreen from './src/components/UserProfileScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();

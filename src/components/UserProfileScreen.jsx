@@ -2,7 +2,7 @@
 import React, { useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AuthContext } from './AuthContext';
+import { AuthContext } from '../utils/auth/AuthContext';
 
 const UserProfileScreen = ({ navigation }) => {
   const { setIsAuthenticated } = useContext(AuthContext);
