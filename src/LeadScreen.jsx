@@ -4,7 +4,8 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { appendAuthHeader } from './apiClient';
 import { BASE_URL } from '@env';
 //const BASE_URL = 'https://4c59-171-50-200-145.ngrok-free.app'; // Replace with your actual BASE_URL
-
+import { callHandlerService } from './callHandlerService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LeadScreen = ({ navigation }) => {
   const [leads, setLeads] = useState([]);
@@ -66,9 +67,22 @@ const LeadScreen = ({ navigation }) => {
       setFilteredLeads(filtered);
     }
   };
-  const handleCall = (phone) => {
+  const handleCall = async (phone, item) => {
     if (phone) {
-      Linking.openURL(`tel:${phone}`);
+      try {
+        // Store the name before making the call
+        const name = `${item.FirstName} ${item.LastName}`;
+        console.log('Storing name for', phone, ':', name);
+        await AsyncStorage.setItem(
+          `caller_name_${phone}`,
+          JSON.stringify({ name, timestamp: Date.now() })
+        );
+        
+        // Make the call
+        Linking.openURL(`tel:${phone}`);
+      } catch (error) {
+        console.error('Error storing name:', error);
+      }
     } else {
       alert('Phone number is not available');
     }
@@ -92,7 +106,7 @@ const LeadScreen = ({ navigation }) => {
 
       {/* Call Icon */}
       {item.Phone && (
-        <TouchableOpacity style={styles.callButton} onPress={() => handleCall(item.Phone)}>
+        <TouchableOpacity style={styles.callButton} onPress={() => handleCall(item.Phone, item)}>
           <Icon name="call" size={24} color="white" />
         </TouchableOpacity>
       )}

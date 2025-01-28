@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Linking 
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { appendAuthHeader } from './apiClient';
 import { BASE_URL } from '@env';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SFContactsScreen = ({ navigation }) => {
   const [contacts, setContacts] = useState([]);
@@ -57,9 +58,22 @@ const SFContactsScreen = ({ navigation }) => {
     }
   };
 
-  const handleCall = (phone) => {
+  const handleCall = async (phone, item) => {
     if (phone) {
-      Linking.openURL(`tel:${phone}`);
+      try {
+        // Store the name before making the call
+        const name = `${item.FirstName} ${item.LastName}`;
+        console.log('Storing name for', phone, ':', name);
+        await AsyncStorage.setItem(
+          `caller_name_${phone}`,
+          JSON.stringify({ name, timestamp: Date.now() })
+        );
+        
+        // Make the call
+        Linking.openURL(`tel:${phone}`);
+      } catch (error) {
+        console.error('Error storing name:', error);
+      }
     } else {
       alert('Phone number is not available');
     }
@@ -80,7 +94,7 @@ const SFContactsScreen = ({ navigation }) => {
       <Text style={styles.detail}>Phone: {item.Phone || 'N/A'}</Text>
 
       {item.Phone && (
-        <TouchableOpacity style={styles.callButton} onPress={() => handleCall(item.Phone)}>
+        <TouchableOpacity style={styles.callButton} onPress={() => handleCall(item.Phone, item)}>
           <Icon name="call" size={24} color="white" />
         </TouchableOpacity>
       )}

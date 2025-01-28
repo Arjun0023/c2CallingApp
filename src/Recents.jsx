@@ -17,16 +17,18 @@ import RNFS from 'react-native-fs';
 import Overlay from './EmailOverlay';
 import { appendAuthHeader } from './apiClient';
 import { BASE_URL } from '@env';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const HEADER_HEIGHT = 10;
 const Recents = () => {
   const [callLogs, setCallLogs] = useState([]);
+ // console.log(callLogs);
   const [loading, setLoading] = useState({});
   const [transcriptionResponses, setTranscriptionResponses] = useState({});
   const [scrollY] = useState(new Animated.Value(0));
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [selectedTranscription, setSelectedTranscription] = useState('');
+  const [displayNames, setDisplayNames] = useState({}); 
   //const BASE_URL = 'https://4c59-171-50-200-145.ngrok-free.app';
   useEffect(() => {
     requestPermissionsAndFetchLogs();
@@ -197,12 +199,40 @@ const findRecordingFile = async (phoneNumber, timestamp, duration) => {
     }
   };
 
-  const renderItem = ({ item }) => (
+  useEffect(() => {
+    const loadNames = async () => {
+      const names = {};
+      for (const log of callLogs) {
+        // Try to get the stored name for each phone number
+        const storedData = await AsyncStorage.getItem(`caller_name_${log.phoneNumber}`);
+        if (storedData) {
+          const { name } = JSON.parse(storedData);
+          names[log.phoneNumber] = name;
+        }
+      }
+      setDisplayNames(names);
+    };
+  
+    loadNames();
+  }, [callLogs]);
+  const renderItem = ({ item }) =>  {
+    // Log what name we're using
+    console.log('Rendering item:', {
+      phoneNumber: item.phoneNumber,
+      originalName: item.name,
+      storedName: displayNames[item.phoneNumber]
+    });
+
+    const displayName = item.name && item.name !== 'Unknown' 
+      ? item.name 
+      : displayNames[item.phoneNumber] || 'Unknown';
+
+    return (
     <View style={styles.callLogItem}>
       <View style={styles.callInfo}>
         <View style={styles.callDetails}>
-          <Text style={styles.nameText}>{item.name || 'Unknown'}</Text>
-          <Text style={styles.phoneNumberText}>{item.phoneNumber}</Text>
+          {/* <Text style={styles.nameText}>{item.name || 'Unknown'}</Text> */}
+          <Text style={styles.nameText}>{displayName}</Text>
           <Text style={styles.dateText}>{formatDate(item.timestamp)}</Text>
           <Text style={styles.durationText}>Duration: {item.duration}s</Text>
           {item.transcription && (
@@ -237,7 +267,7 @@ const findRecordingFile = async (phoneNumber, timestamp, duration) => {
         </View>
       </View>
     </View>
-  );
+  );}
   return (
     <View style={styles.container}>
                  <Overlay
