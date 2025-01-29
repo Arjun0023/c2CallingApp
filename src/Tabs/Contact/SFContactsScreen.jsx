@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Linking,ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { appendAuthHeader } from '../../utils/auth/apiClient';
 import {BASE_URL} from '@env';
@@ -116,19 +116,22 @@ const SFContactsScreen = ({ navigation }) => {
       />
       <Icon name="search" size={24} color="#888" style={styles.searchIcon} />
       </View>
-      {filteredContacts.length > 0 ? (
-        <FlatList
-          data={filteredContacts}
-          keyExtractor={(item) => item.Id}
-          renderItem={renderContact}
-          contentContainerStyle={styles.list}
-        />
-        
-      ) : (
-        <Text style={styles.emptyText}>No contacts found</Text>
-      )}
-    </View>
-  );
+      {isLoading ? (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    ) : filteredContacts.length > 0 ? (
+      <FlatList
+        data={filteredContacts}
+        keyExtractor={(item) => item.Id}
+        renderItem={renderContact}
+        contentContainerStyle={styles.list}
+      />
+    ) : (
+      <Text style={styles.emptyText}>No contacts found</Text>
+    )}
+  </View>
+);
 };
 
 const styles = StyleSheet.create({
@@ -201,6 +204,11 @@ emptyText: {
     backgroundColor: '#007AFF',
     borderRadius: 20,
     padding: 8,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   // emptyText: {
   //   textAlign: 'center',

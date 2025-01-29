@@ -22,17 +22,23 @@ const RecordMeeting = ({ route, navigation }) => {
   const requestPermissions = async () => {
     if (Platform.OS === 'android') {
       try {
-        const granted = await PermissionsAndroid.requestMultiple([
-          PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-        ]);
+        const permissions = [PermissionsAndroid.PERMISSIONS.RECORD_AUDIO];
+        // Only request storage permissions for Android < 10
+        if (Platform.Version < 29) {
+          permissions.push(
+            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE
+          );
+        }
 
-        if (
-          granted['android.permission.RECORD_AUDIO'] !== PermissionsAndroid.RESULTS.GRANTED ||
-          granted['android.permission.WRITE_EXTERNAL_STORAGE'] !== PermissionsAndroid.RESULTS.GRANTED ||
-          granted['android.permission.READ_EXTERNAL_STORAGE'] !== PermissionsAndroid.RESULTS.GRANTED
-        ) {
+        const granted = await PermissionsAndroid.requestMultiple(permissions);
+
+        // Check if all required permissions are granted
+        const allGranted = Object.values(granted).every(
+          (result) => result === PermissionsAndroid.RESULTS.GRANTED
+        );
+
+        if (!allGranted) {
           Alert.alert('Permissions Denied', 'You need to allow permissions to record audio.');
           return false;
         }
@@ -44,6 +50,7 @@ const RecordMeeting = ({ route, navigation }) => {
     }
     return true;
   };
+
 
   const handleStartRecording = async () => {
     if (!meetingName.trim()) {

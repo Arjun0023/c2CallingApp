@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput ,ActivityIndicator} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { appendAuthHeader } from '../../utils/auth/apiClient';
 //const BASE_URL = 'https://4c59-171-50-200-145.ngrok-free.app'; // Replace with your actual BASE_URL
@@ -77,7 +77,11 @@ const TasksScreen = () => {
         <Icon name="search" size={24} color="#888" style={styles.searchIcon} />
       </View>
 
-      {filteredTasks.length > 0 ? (
+      {isLoading ? (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
+        </View>
+      ) : filteredTasks.length > 0 ? (
         <FlatList
           data={filteredTasks}
           keyExtractor={(item) => item.Id}
@@ -149,6 +153,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     marginTop: 20,
+  },loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

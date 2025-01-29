@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Linking, TextInput } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Linking, TextInput,ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { appendAuthHeader } from '../../utils/auth/apiClient';
 import {BASE_URL} from '@env';
@@ -132,18 +132,22 @@ console.log('BASE_URL:', BASE_URL);
         <Icon name="search" size={24} color="#888" style={styles.searchIcon} />
       </View>
 
-      {filteredLeads.length > 0 ? (
-        <FlatList
-          data={filteredLeads}
-          keyExtractor={(item) => item.Id}
-          renderItem={renderLead}
-          contentContainerStyle={styles.list}
-        />
-      ) : (
-        <Text style={styles.emptyText}>No leads available</Text>
-      )}
-    </View>
-  );
+      {isLoading ? (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    ) : filteredLeads.length > 0 ? (
+      <FlatList
+        data={filteredLeads}
+        keyExtractor={(item) => item.Id}
+        renderItem={renderLead}
+        contentContainerStyle={styles.list}
+      />
+    ) : (
+      <Text style={styles.emptyText}>No leads available</Text>
+    )}
+  </View>
+);
 };
 
 const styles = StyleSheet.create({
@@ -216,6 +220,11 @@ emptyText: {
     backgroundColor: '#007AFF',
     borderRadius: 20,
     padding: 8,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   // emptyText: {
   //   textAlign: 'center',
