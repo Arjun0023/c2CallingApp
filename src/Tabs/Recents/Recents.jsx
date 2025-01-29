@@ -9,7 +9,9 @@ import {
   Button,
   ActivityIndicator,
   TouchableOpacity,
-  Animated
+  Animated,
+  Platform,
+  Linking
 } from 'react-native';
 import CallLogs from 'react-native-call-log';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -34,28 +36,122 @@ const Recents = () => {
     requestPermissionsAndFetchLogs();
   }, []);
 
-  const requestPermissionsAndFetchLogs = async () => {
+  const openSettings = async () => {
     try {
-      const permissions = await Promise.all([
-        PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.READ_CALL_LOG
-        ),
-        PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE
-        ),
-      ]);
+      await Linking.openSettings();
+    } catch (error) {
+      console.error('Error opening settings:', error);
+    }
+  };
 
-      if (permissions.every(permission => permission === PermissionsAndroid.RESULTS.GRANTED)) {
-        const logs = await CallLogs.loadAll();
-        setCallLogs(logs);
-      } else {
-        Alert.alert('Permission Denied', 'Both call log and storage permissions are required.');
-      }
+  const requestSinglePermission = async (permission, title, message) => {
+    try {
+      const result = await PermissionsAndroid.request(
+        permission,
+        {
+          title: title,
+          message: message,
+          buttonPositive: 'Allow',
+          buttonNegative: 'Deny',
+        }
+      );
+
+      return result === PermissionsAndroid.RESULTS.GRANTED;
+    } catch (error) {
+      console.error(`Error requesting ${permission}:`, error);
+      return false;
+    }
+  };
+
+  const requestPermissionsSequentially = async () => {
+    // First, request READ_CALL_LOG permission
+    const callLogGranted = await requestSinglePermission(
+      PermissionsAndroid.PERMISSIONS.READ_CALL_LOG,
+      'Call Log Permission',
+      'This app needs access to your call log to show recent calls.'
+    );
+
+    if (!callLogGranted) {
+      Alert.alert(
+        'Permission Required',
+        'Call log permission is required for this app to function properly.',
+        [
+          {
+            text: 'Open Settings',
+            onPress: openSettings
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+        ]
+      );
+      return false;
+    }
+
+    // Then, request storage permission based on Android version
+    let storageGranted = false;
+    if (Platform.Version >= 33) {
+      storageGranted = await requestSinglePermission(
+        PermissionsAndroid.PERMISSIONS.READ_MEDIA_AUDIO,
+        'Audio Access Permission',
+        'This app needs access to your audio files to transcribe recordings.'
+      );
+    } else {
+      storageGranted = await requestSinglePermission(
+        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        'Storage Permission',
+        'This app needs access to your storage to access call recordings.'
+      );
+    }
+
+    if (!storageGranted) {
+      Alert.alert(
+        'Permission Required',
+        'Storage permission is required to access call recordings.',
+        [
+          {
+            text: 'Open Settings',
+            onPress: openSettings
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+        ]
+      );
+      return false;
+    }
+
+    return true;
+  };
+
+  const fetchCallLogs = async () => {
+    try {
+      const logs = await CallLogs.loadAll();
+      setCallLogs(logs);
     } catch (error) {
       console.error('Error fetching call logs:', error);
       Alert.alert('Error', 'Unable to fetch call logs.');
     }
   };
+
+  const requestPermissionsAndFetchLogs = async () => {
+    try {
+      const allGranted = await requestPermissionsSequentially();
+      
+      if (allGranted) {
+        await fetchCallLogs();
+      }
+    } catch (error) {
+      console.error('Error in permission handling:', error);
+      Alert.alert('Error', 'Unable to process permissions.');
+    }
+  };
+
+  useEffect(() => {
+    requestPermissionsAndFetchLogs();
+  }, []);
 
   const formatDateForRecording = (date) => {
     return date.getFullYear() +
@@ -66,50 +162,84 @@ const Recents = () => {
            ('0' + date.getSeconds()).slice(-2);
   };
 
-const findRecordingFile = async (phoneNumber, timestamp, duration) => {
-  const possiblePaths = [
-    `${RNFS.ExternalStorageDirectoryPath}/MIUI/sound_recorder/call_rec`,
-    `${RNFS.ExternalStorageDirectoryPath}/Recordings/Call`,
-    `${RNFS.ExternalStorageDirectoryPath}/Sounds/Recordings`,
-    `${RNFS.ExternalStorageDirectoryPath}/Record/Call`,
-    `${RNFS.ExternalStorageDirectoryPath}/Recordings/Call`,
+  const findRecordingFile = async (phoneNumber, timestamp, duration) => {
+    const possiblePaths = [
+      `${RNFS.ExternalStorageDirectoryPath}/MIUI/sound_recorder/call_rec`,
+      `${RNFS.ExternalStorageDirectoryPath}/Recordings/Call`,
+      `${RNFS.ExternalStorageDirectoryPath}/Sounds/Recordings`,
+      `${RNFS.ExternalStorageDirectoryPath}/Record/Call`,
+      `${RNFS.ExternalStorageDirectoryPath}/Recordings/Call`,
       // Add more paths based on your research
       // e.g., `${RNFS.ExternalStorageDirectoryPath}/Samsung/Recordings/Call`
-  ];
-
-  for (const recordingsPath of possiblePaths) {
-    try {
-     if (!(await RNFS.exists(recordingsPath))) {
-         continue; // Skip if path doesn't exist
-     }
-     
-      const files = await RNFS.readDir(recordingsPath);
-      // Rest of your file searching logic remains the same, just replace the hardcoded path with recordingsPath 
-       const callEndTime = new Date(timestamp);
-       const callStartTime = new Date(timestamp - (duration * 1000));
-       const startTimeStr = formatDateForRecording(callStartTime);
-       const cleanNumber = phoneNumber.replace(/\D/g, '');
-
-       const recording = files.find(file => {
-         const fileName = file.name;
-         if (!fileName.includes(cleanNumber)) {
-           return false;
-         }
-         const fileTimestamp = fileName.match(/_(\d{14})\.mp3$/);
-         if (!fileTimestamp) {
-           return false;
-         }
-         const timeDiff = Math.abs(parseInt(fileTimestamp[1]) - parseInt(startTimeStr));
-         return timeDiff < 100;
-       });
-       if(recording) return recording;
-    } catch (error) {
-        console.error('Error searching in directory:', recordingsPath, error)
+    ];
+  
+    console.log(`Starting search for recording with phone number: ${phoneNumber}, timestamp: ${timestamp}, duration: ${duration}`);
+  
+    for (const recordingsPath of possiblePaths) {
+      console.log(`Checking path: ${recordingsPath}`);
+  
+      try {
+        // Check if the path exists
+        if (!(await RNFS.exists(recordingsPath))) {
+          console.log(`Path does not exist: ${recordingsPath}`);
+          continue; // Skip if path doesn't exist
+        }
+  
+        console.log(`Path exists: ${recordingsPath}. Reading directory...`);
+  
+        // Read the directory contents
+        const files = await RNFS.readDir(recordingsPath);
+        console.log(`Found ${files.length} files in directory: ${recordingsPath}`);
+  
+        // Calculate call start and end times
+        const callEndTime = new Date(timestamp);
+        const callStartTime = new Date(timestamp - duration * 1000);
+        const startTimeStr = formatDateForRecording(callStartTime);
+        const cleanNumber = phoneNumber.replace(/\D/g, '');
+  
+        console.log(`Call start time: ${callStartTime}, formatted: ${startTimeStr}`);
+        console.log(`Call end time: ${callEndTime}`);
+        console.log(`Cleaned phone number: ${cleanNumber}`);
+  
+        // Search for the recording file
+        const recording = files.find(file => {
+          const fileName = file.name;
+          console.log(`Checking file: ${fileName}`);
+  
+          // Check if the file name includes the cleaned phone number
+          if (!fileName.includes(cleanNumber)) {
+            console.log(`File does not include phone number: ${fileName}`);
+            return false;
+          }
+  
+          // Extract timestamp from the file name
+          const fileTimestamp = fileName.match(/_(\d{14})\.mp3$/);
+          if (!fileTimestamp) {
+            console.log(`File does not have a valid timestamp: ${fileName}`);
+            return false;
+          }
+  
+          // Compare the file timestamp with the call start time
+          const timeDiff = Math.abs(parseInt(fileTimestamp[1]) - parseInt(startTimeStr));
+          console.log(`File timestamp: ${fileTimestamp[1]}, time difference: ${timeDiff}`);
+  
+          return timeDiff < 100;
+        });
+  
+        if (recording) {
+          console.log(`Recording found: ${recording.name} in path: ${recordingsPath}`);
+          return recording;
+        } else {
+          console.log(`No matching recording found in path: ${recordingsPath}`);
+        }
+      } catch (error) {
+        console.error(`Error searching in directory: ${recordingsPath}`, error);
+      }
     }
-  }
-
-  return null; // No recording found in any paths
-};
+  
+    console.log(`No recording found in any of the paths.`);
+    return null; // No recording found in any paths
+  };
 
   const transcribeRecording = async (phoneNumber, timestamp, duration, logId) => {
     try {

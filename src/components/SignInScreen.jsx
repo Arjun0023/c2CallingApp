@@ -52,7 +52,7 @@ const SignInScreen = ({ onSignIn }) => {
       });
 
       const data = await response.json();
-
+// console.log(data);
       if (response.ok) {
         // Store token
         await AsyncStorage.setItem('access_token', data.access_token);
