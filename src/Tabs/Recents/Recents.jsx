@@ -161,42 +161,7 @@ const Recents = () => {
            ('0' + date.getMinutes()).slice(-2) +
            ('0' + date.getSeconds()).slice(-2);
   };
-  
-  // Helper function to extract date from various filename formats
-  const extractTimestampFromFileName = (fileName) => {
-    console.log('Attempting to extract timestamp from:', fileName);
-    
-    const patterns = [
-      // Original format: _20250123162301.mp3
-      {
-        regex: /_(\d{14})\.(mp3|m4a)$/,
-        transform: (match) => match[1]
-      },
-      // Format: _250124_165806.m4a
-      {
-        regex: /_(\d{6})_(\d{6})\.(mp3|m4a)$/,
-        transform: (match) => `20${match[1]}${match[2]}`
-      },
-      // Format: 2025-01-13 15-42-23.m4a
-      {
-        regex: /(\d{4})-(\d{2})-(\d{2})\s+(\d{2})-(\d{2})-(\d{2})\.(mp3|m4a)$/,
-        transform: (match) => `${match[1]}${match[2]}${match[3]}${match[4]}${match[5]}${match[6]}`
-      }
-    ];
-  
-    for (const pattern of patterns) {
-      const match = fileName.match(pattern.regex);
-      if (match) {
-        const timestamp = pattern.transform(match);
-        console.log('Extracted timestamp:', timestamp);
-        return timestamp;
-      }
-    }
-  
-    console.log('No timestamp pattern matched');
-    return null;
-  };
-  
+
   const findRecordingFile = async (phoneNumber, timestamp, duration) => {
     const possiblePaths = [
       `${RNFS.ExternalStorageDirectoryPath}/MIUI/sound_recorder/call_rec`,
@@ -204,88 +169,83 @@ const Recents = () => {
       `${RNFS.ExternalStorageDirectoryPath}/Sounds/Recordings`,
       `${RNFS.ExternalStorageDirectoryPath}/Record/Call`,
       `${RNFS.ExternalStorageDirectoryPath}/Recordings/Call`,
+      `${RNFS.ExternalStorageDirectoryPath}/Internal storage/Recordings/Call`,
+      `${RNFS.ExternalStorageDirectoryPath}/Recordings/Record/Call`,
     ];
   
-    console.log(`Starting search for recording with phone number: ${phoneNumber}, timestamp: ${timestamp}, duration: ${duration}`);
+    console.log('Search parameters:', {
+      phoneNumber,
+      timestamp,
+      duration
+    });
   
-    const cleanNumber = phoneNumber.replace(/\D/g, '');
-    console.log('Cleaned phone number:', cleanNumber);
+    // Convert timestamp to Date object for comparison
+    const callTimestamp = parseInt(timestamp);
+    
+    // Increase time window to 2 minutes (120 seconds) to account for file saving delay
+    const timeWindow = 120 * 1000; // 120 seconds in milliseconds
+    const minTime = callTimestamp - timeWindow;
+    const maxTime = callTimestamp + timeWindow;
   
-    // Function to check if filename contains the contact name or number
-    const hasPhoneNumberOrName = (fileName, number) => {
-      const patterns = [
-        number,                    // Direct number match
-        number.slice(-10),         // Last 10 digits
-        number.slice(-8),          // Last 8 digits (some phones store partial numbers)
-      ];
-      
-      return patterns.some(pattern => fileName.includes(pattern));
-    };
+    console.log('Time window:', {
+      callTime: new Date(callTimestamp).toISOString(),
+      minTime: new Date(minTime).toISOString(),
+      maxTime: new Date(maxTime).toISOString()
+    });
   
     for (const recordingsPath of possiblePaths) {
-      console.log(`Checking path: ${recordingsPath}`);
-  
       try {
         if (!(await RNFS.exists(recordingsPath))) {
           console.log(`Path does not exist: ${recordingsPath}`);
           continue;
         }
   
-        console.log(`Path exists: ${recordingsPath}. Reading directory...`);
-  
         const files = await RNFS.readDir(recordingsPath);
-        console.log(`Found ${files.length} files in directory: ${recordingsPath}`);
+        console.log(`Searching in ${recordingsPath}, found ${files.length} files`);
   
-        const callEndTime = new Date(timestamp);
-        const callStartTime = new Date(timestamp - duration * 1000);
-        const startTimeStr = formatDateForRecording(callStartTime);
-  
-        console.log(`Call start time: ${callStartTime}, formatted: ${startTimeStr}`);
-        console.log(`Call end time: ${callEndTime}`);
-  
-        const recording = files.find(file => {
+        // Clean phone number (remove non-digits)
+        const cleanNumber = phoneNumber.replace(/\D/g, '');
+        
+        for (const file of files) {
           const fileName = file.name;
-          console.log(`Checking file: ${fileName}`);
-  
-          // First check if file has the right extension
-          if (!fileName.match(/\.(mp3|m4a)$/i)) {
-            console.log(`Skipping file with wrong extension: ${fileName}`);
-            return false;
+          
+          // Check if file name contains the phone number
+          if (!fileName.includes(cleanNumber)) {
+            continue;
           }
   
-          // Check if filename contains the number or name
-          if (!hasPhoneNumberOrName(fileName, cleanNumber)) {
-            console.log(`File does not include phone number: ${fileName}`);
-            return false;
+          try {
+            // Get file creation/modification time
+            const fileStats = await RNFS.stat(file.path);
+            const fileTimestamp = new Date(fileStats.ctime).getTime();
+  
+            console.log('Potential match found:', {
+              fileName,
+              fileTime: new Date(fileTimestamp).toISOString(),
+              callTime: new Date(callTimestamp).toISOString(),
+              timeDiff: Math.abs(fileTimestamp - callTimestamp) / 1000, // Convert to seconds for readability
+              isInWindow: fileTimestamp >= minTime && fileTimestamp <= maxTime
+            });
+  
+            // Check if file timestamp falls within our time window
+            if (fileTimestamp >= minTime && fileTimestamp <= maxTime) {
+              console.log('Found matching recording:', {
+                path: file.path,
+                timeDifference: `${Math.abs(fileTimestamp - callTimestamp) / 1000} seconds`
+              });
+              return file;
+            }
+          } catch (error) {
+            console.error('Error getting file stats:', error);
+            continue;
           }
-  
-          // Extract timestamp using the new function
-          const fileTimestamp = extractTimestampFromFileName(fileName);
-          if (!fileTimestamp) {
-            console.log(`Could not extract timestamp from filename: ${fileName}`);
-            return false;
-          }
-  
-          // Compare timestamps with more tolerance (2 minutes = 120 seconds)
-          const timeDiff = Math.abs(parseInt(fileTimestamp) - parseInt(startTimeStr));
-          console.log(`File timestamp: ${fileTimestamp}, time difference: ${timeDiff}`);
-  
-          // Increased tolerance to 120 to account for different phone's timestamp variations
-          return timeDiff < 120;
-        });
-  
-        if (recording) {
-          console.log(`Recording found: ${recording.name} in path: ${recordingsPath}`);
-          return recording;
         }
-  
-        console.log(`No matching recording found in path: ${recordingsPath}`);
       } catch (error) {
-        console.error(`Error searching in directory: ${recordingsPath}`, error);
+        console.error(`Error searching in ${recordingsPath}:`, error);
       }
     }
   
-    console.log('No recording found in any paths');
+    console.log('No matching recording found');
     return null;
   };
 
@@ -298,7 +258,7 @@ const Recents = () => {
         Alert.alert('File Not Found', 'No recording found for this call.');
         return;
       }
-
+      console.log('Found recording:', recording.path);
       const formData = new FormData();
       formData.append('file', {
         uri: `file://${recording.path}`,
