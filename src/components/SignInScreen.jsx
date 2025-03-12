@@ -9,26 +9,27 @@ import {
   Image,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import qs from 'qs';
+import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
-import {BASE_URL} from '@env';
+// import {BASE_URL} from '@env';
 //const BASE_URL = 'https://4c59-171-50-200-145.ngrok-free.app';
-
+const BASE_URL = 'https://c63a-182-70-31-180.ngrok-free.app';
 const SignInScreen = ({ onSignIn }) => {
   const [email, setEmail] = useState('');
   const [orgName, setOrgName] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-    const navigation = useNavigation();
+  const navigation = useNavigation();
 
   const handleSignIn = async () => {
     setLoading(true);
     setError('');
 
     try {
-      setLoading(true);
-      const formData = qs.stringify({
+      console.log('Attempting to sign in with URL:', BASE_URL);
+      
+      const formData = {
         grant_type: 'password',
         username: email,
         password: password,
@@ -36,49 +37,68 @@ const SignInScreen = ({ onSignIn }) => {
         client_id: '',
         client_secret: '',
         tenant_name: orgName,
-      });
-
-
-      // Explicitly check the formData is non-empty
-      if (!formData) {
-        throw new Error('FormData is empty');
-      }
-      const response = await fetch(`${BASE_URL}/login`, {
-        method: 'POST',
+      };
+      
+      // Using axios instead of fetch
+      const response = await axios.post(`${BASE_URL}/login`, formData, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: formData
+        // Converting the object to x-www-form-urlencoded format
+        transformRequest: [(data) => {
+          return Object.entries(data)
+            .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+            .join('&');
+        }]
       });
 
-      const data = await response.json();
-// console.log(data);
-      if (response.ok) {
-        // Store token
-        await AsyncStorage.setItem('access_token', data.access_token);
-        
-        // Store additional user data
-        const userData = JSON.stringify({
-          email,
-          role: data.role,
-          sfStatus: data.status,
-          tenantName: orgName
-        });
-        await AsyncStorage.setItem('userData', userData);
+      // Axios automatically returns the data property
+      const data = response.data;
+      console.log('Sign-in response:', data);
+      
+      // Store token
+      await AsyncStorage.setItem('access_token', data.access_token);
+      
+      // Store additional user data
+      const userData = JSON.stringify({
+        email,
+        role: data.role,
+        sfStatus: data.status,
+        tenantName: orgName
+      });
+      await AsyncStorage.setItem('userData', userData);
 
-        if (data.status === "sf login needed") {
-          setError('Please integrate Salesforce first');
-        } else {
-          // Add this line to trigger a state update
-            onSignIn();
-             //Remove this line navigation.navigate('Main');
-        }
+      if (data.status === "sf login needed") {
+        setError('Please integrate Salesforce first');
       } else {
-        setError('Email or password is incorrect');
+        // Add this line to trigger a state update
+        onSignIn();
+        //Remove this line navigation.navigate('Main');
       }
     } catch (error) {
       console.error('SignIn Error:', error);
-      setError('An error occurred. Please try again.');
+      
+      // Improved error handling with axios
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+        
+        if (error.response.status === 401) {
+          setError('Email or password is incorrect');
+        } else {
+          setError(`Server error: ${error.response.status}`);
+        }
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.error('Error request:', error.request);
+        setError('No response from server. Please check your connection.');
+      } else {
+        // Something happened in setting up the request
+        console.error('Error message:', error.message);
+        setError('An error occurred. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -143,7 +163,6 @@ const SignInScreen = ({ onSignIn }) => {
   );
 };
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -191,10 +210,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  feedback: {
-    textAlign: 'center',
-    marginTop: 10,
-    fontSize: 16,
+  buttonDisabled: {
+    backgroundColor: '#80B7EE', // Lighter blue when disabled
+  },
+  errorText: {
+    color: '#E74C3C',
+    marginTop: 5,
+    marginBottom: 15,
+    fontSize: 14,
   },
   signUpText: {
     marginTop: 15,

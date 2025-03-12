@@ -6,6 +6,7 @@ import { appendAuthHeader } from '../../utils/auth/apiClient';
 import {BASE_URL} from '@env';
 
 const TasksScreen = () => {
+  const BASE_URL = 'https://c2crm.clickto.tech';
   const [tasks, setTasks] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredTasks, setFilteredTasks] = useState([]);

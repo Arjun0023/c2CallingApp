@@ -96,7 +96,7 @@ const MeetingsStackScreen = () => (
 // Main Tab Navigator Component
 const TabNavigator = () => (
   <Tab.Navigator
-    initialRouteName="Lead" // Add this line
+    initialRouteName="Meetings" // Add this line
     screenOptions={({ route }) => ({
       tabBarIcon: ({ focused, color, size }) => {
         let iconName;

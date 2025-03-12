@@ -23,6 +23,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const HEADER_HEIGHT = 10;
 const Recents = () => {
+  const BASE_URL = 'https://c2crm.clickto.tech';
   const [callLogs, setCallLogs] = useState([]);
  // console.log(callLogs);
   const [loading, setLoading] = useState({});

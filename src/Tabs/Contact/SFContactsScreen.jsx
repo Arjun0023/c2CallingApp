@@ -9,7 +9,7 @@ const SFContactsScreen = ({ navigation }) => {
   const [contacts, setContacts] = useState([]);
   const [filteredContacts, setFilteredContacts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  //const BASE_URL = 'https://4c59-171-50-200-145.ngrok-free.app'; // Replace with your actual BASE_URL
+  const BASE_URL = 'https://c2crm.clickto.tech'; // Replace with your actual BASE_URL
   const [isLoading, setIsLoading] = useState(true);
 
   

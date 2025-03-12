@@ -8,6 +8,7 @@ import { callHandlerService } from './callHandlerService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LeadScreen = ({ navigation }) => {
+  const BASE_URL = 'https://c2crm.clickto.tech';
   const [leads, setLeads] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredLeads, setFilteredLeads] = useState([]);

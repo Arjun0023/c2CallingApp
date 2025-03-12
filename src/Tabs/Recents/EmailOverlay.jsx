@@ -10,7 +10,7 @@ const Overlay = ({ visible, onClose, transcription }) => {
   const [generatedEmail, setGeneratedEmail] = useState('');
   const [showTranscription, setShowTranscription] = useState(true);
   const [dropdownExpanded, setDropdownExpanded] = useState(false);
-
+  const BASE_URL = 'https://c2crm.clickto.tech';
 
   const dropdownOptions = [
     { label: 'Cold Email Outreach', type: 'Cold Email Outreach', icon: 'email' },
