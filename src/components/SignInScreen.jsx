@@ -13,7 +13,7 @@ import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 // import {BASE_URL} from '@env';
 //const BASE_URL = 'https://4c59-171-50-200-145.ngrok-free.app';
-const BASE_URL = 'https://c63a-182-70-31-180.ngrok-free.app';
+const BASE_URL = 'https://c2crm.clickto.tech';
 const SignInScreen = ({ onSignIn }) => {
   const [email, setEmail] = useState('');
   const [orgName, setOrgName] = useState('');
